@@ -1,6 +1,9 @@
 # Elephant Corridor Monitoring System - Architecture Specification
 
 ## 1. System Overview
+
+![Elephant Corridor Monitoring System - Architecture](architecture.png)
+
 The **Elephant Corridor Monitoring System** is an integrated cyber-physical early warning system designed to mitigate human-elephant conflict (HEC) near forest fringe settlements. 
 
 The architecture is divided into two cooperative subsystems:

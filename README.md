@@ -63,6 +63,8 @@ In Logisim-Evolution:
 
 ## How the Pieces Fit Together
 
+![Elephant Corridor Monitoring System - Architecture](docs/architecture.png)
+
 ```
 [LIVE HARDWARE PIPELINE]
 Four Digital Inputs

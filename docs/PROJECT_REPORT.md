@@ -25,7 +25,9 @@ Human-elephant conflict is a serious problem where settlements border forest cor
 
 ## 3. System architecture
 
-See `docs/architecture.svg`. The **hardware part** (Logisim) works live; the **software part** (Assembly) works on recorded data. Both share the threshold `DANGER_DIST_M = 500 m`.
+![Elephant Corridor Monitoring System - Architecture](architecture.png)
+
+See `docs/architecture.svg` and `docs/architecture.png`. The **hardware part** (Logisim) works live; the **software part** (Assembly) works on recorded data. Both share the threshold `DANGER_DIST_M = 500 m`.
 
 ## 4. Digital representation of inputs
 

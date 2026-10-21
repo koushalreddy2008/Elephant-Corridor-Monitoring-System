@@ -1,155 +1,101 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 650" width="100%" height="100%" style="background:#0f172a; font-family:system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 520" width="100%" height="100%" style="background:#ffffff; font-family:system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
   <defs>
-    <linearGradient id="hwGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#0284c7" />
-      <stop offset="100%" stop-color="#0369a1" />
-    </linearGradient>
-    <linearGradient id="swGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#059669" />
-      <stop offset="100%" stop-color="#047857" />
-    </linearGradient>
-    <linearGradient id="sharedGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#d97706" />
-      <stop offset="100%" stop-color="#b45309" />
-    </linearGradient>
-    <filter id="shadow" x="-5%" y="-5%" width="110%" height="110%">
-      <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#000000" flood-opacity="0.4"/>
+    <filter id="cardShadow" x="-5%" y="-5%" width="110%" height="110%">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#000000" flood-opacity="0.08"/>
     </filter>
     <marker id="arrow" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 8 5 L 0 9 z" fill="#38bdf8" />
-    </marker>
-    <marker id="arrowGreen" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 8 5 L 0 9 z" fill="#34d399" />
-    </marker>
-    <marker id="arrowAmber" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 8 5 L 0 9 z" fill="#fbbf24" />
+      <path d="M 0 1 L 8 5 L 0 9 z" fill="#334155" />
     </marker>
   </defs>
 
-  <!-- Title Header -->
-  <text x="500" y="45" text-anchor="middle" font-size="24" font-weight="bold" fill="#f8fafc" letter-spacing="1">ELEPHANT CORRIDOR MONITORING SYSTEM</text>
-  <text x="500" y="70" text-anchor="middle" font-size="14" fill="#94a3b8">System Architecture: Dual-Tier Live Digital Circuit &amp; Historical Assembly Analytics</text>
+  <!-- Title -->
+  <text x="500" y="38" text-anchor="middle" font-size="22" font-weight="bold" fill="#0f172a">Elephant Corridor Monitoring System - Architecture</text>
 
-  <!-- HARDWARE SUBSYSTEM (TOP / LEFT) -->
-  <rect x="40" y="100" width="440" height="420" rx="12" fill="#1e293b" stroke="#0284c7" stroke-width="2" filter="url(#shadow)"/>
-  <rect x="40" y="100" width="440" height="40" rx="12" fill="url(#hwGrad)"/>
-  <text x="55" y="126" font-size="16" font-weight="bold" fill="#ffffff">1. HARDWARE SUBSYSTEM (Live Digital Logic)</text>
-  <text x="460" y="126" text-anchor="end" font-size="12" fill="#bae6fd">Logisim-Evolution</text>
-
-  <!-- Digital Inputs -->
-  <g transform="translate(60, 160)">
-    <rect x="0" y="0" width="130" height="150" rx="8" fill="#0f172a" stroke="#334155"/>
-    <text x="65" y="24" text-anchor="middle" font-size="12" font-weight="bold" fill="#38bdf8">Digital Inputs</text>
-    <line x1="10" y1="32" x2="120" y2="32" stroke="#334155"/>
-    <text x="15" y="52" font-size="11" fill="#cbd5e1">• Proximity [1..0]</text>
-    <text x="15" y="72" font-size="11" fill="#cbd5e1">• Direction [1..0]</text>
-    <text x="15" y="92" font-size="11" fill="#cbd5e1">• Speed [1..0]</text>
-    <text x="15" y="112" font-size="11" fill="#cbd5e1">• Night Flag [0]</text>
-    <text x="15" y="132" font-size="11" fill="#cbd5e1">• Corridor [1..0]</text>
+  <!-- ==================== HARDWARE SUBSYSTEM ==================== -->
+  <!-- Box 1: Digital Inputs (Light Blue) -->
+  <g transform="translate(40, 70)">
+    <rect x="0" y="0" width="200" height="160" rx="8" fill="#e0f2fe" stroke="#38bdf8" stroke-width="1.5" filter="url(#cardShadow)"/>
+    <text x="100" y="30" text-anchor="middle" font-size="15" font-weight="bold" fill="#0f172a">Digital inputs</text>
+    <text x="100" y="65" text-anchor="middle" font-size="14" fill="#334155">Proximity (2 bit)</text>
+    <text x="100" y="92" text-anchor="middle" font-size="14" fill="#334155">Direction (2 bit)</text>
+    <text x="100" y="119" text-anchor="middle" font-size="14" fill="#334155">Speed (2 bit)</text>
+    <text x="100" y="146" text-anchor="middle" font-size="14" fill="#334155">Night flag (1 bit)</text>
   </g>
 
-  <!-- Combinational Logic -->
-  <g transform="translate(230, 160)">
-    <rect x="0" y="0" width="220" height="150" rx="8" fill="#0f172a" stroke="#334155"/>
-    <text x="110" y="24" text-anchor="middle" font-size="12" font-weight="bold" fill="#38bdf8">Decision Logic Gates</text>
-    <line x1="10" y1="32" x2="210" y2="32" stroke="#334155"/>
-    <text x="15" y="52" font-size="11" fill="#f1f5f9">DANGER = (PROX == 11)</text>
-    <text x="15" y="75" font-size="10.5" fill="#f1f5f9">WARN = DANGER + (P10 · D01)</text>
-    <text x="15" y="98" font-size="10.5" fill="#f1f5f9">SIREN = DANGER · (D01 + NIGHT)</text>
-    <text x="15" y="125" font-size="10.5" fill="#94a3b8">Status: CLEAR/NEAR/ALERT/DANGER</text>
+  <!-- Arrow 1 -> 2 -->
+  <line x1="240" y1="150" x2="315" y2="150" stroke="#334155" stroke-width="2" marker-end="url(#arrow)"/>
+
+  <!-- Box 2: Danger-zone logic (Light Yellow/Orange) -->
+  <g transform="translate(320, 70)">
+    <rect x="0" y="0" width="220" height="160" rx="8" fill="#fef3c7" stroke="#f59e0b" stroke-width="1.5" filter="url(#cardShadow)"/>
+    <text x="110" y="30" text-anchor="middle" font-size="15" font-weight="bold" fill="#0f172a">Danger-zone logic</text>
+    <text x="110" y="72" text-anchor="middle" font-size="14" fill="#334155">PROX = 11 (&lt;= 500 m)</text>
+    <text x="110" y="102" text-anchor="middle" font-size="14" fill="#334155">+ direction / night</text>
+    <text x="110" y="132" text-anchor="middle" font-size="14" fill="#334155">-&gt; DANGER flag</text>
   </g>
 
-  <!-- Hardware Indicators & Counters -->
-  <g transform="translate(60, 335)">
-    <rect x="0" y="0" width="390" height="160" rx="8" fill="#0f172a" stroke="#334155"/>
-    <text x="195" y="24" text-anchor="middle" font-size="12" font-weight="bold" fill="#38bdf8">Hardware Outputs &amp; Crossings Registry</text>
-    <line x1="10" y1="32" x2="380" y2="32" stroke="#334155"/>
-    
-    <!-- LED Indicators -->
-    <circle cx="45" cy="60" r="10" fill="#22c55e" filter="url(#shadow)"/>
-    <text x="65" y="64" font-size="11" fill="#cbd5e1">SAFE LED</text>
-    <circle cx="160" cy="60" r="10" fill="#eab308" filter="url(#shadow)"/>
-    <text x="180" y="64" font-size="11" fill="#cbd5e1">WARN LED</text>
-    <circle cx="280" cy="60" r="10" fill="#ef4444" filter="url(#shadow)"/>
-    <text x="300" y="64" font-size="11" fill="#cbd5e1">DANGER / SIREN</text>
+  <!-- Arrows 2 -> Outputs -->
+  <!-- To Warning Signals -->
+  <line x1="540" y1="120" x2="615" y2="95" stroke="#334155" stroke-width="2" marker-end="url(#arrow)"/>
+  <!-- To Crossing Counters -->
+  <line x1="540" y1="150" x2="615" y2="150" stroke="#334155" stroke-width="2" marker-end="url(#arrow)"/>
+  <!-- To Status Display -->
+  <line x1="540" y1="180" x2="615" y2="205" stroke="#334155" stroke-width="2" marker-end="url(#arrow)"/>
 
-    <!-- Counters -->
-    <rect x="25" y="90" width="75" height="50" rx="4" fill="#1e293b" stroke="#475569"/>
-    <text x="62" y="112" text-anchor="middle" font-size="11" fill="#94a3b8">Counter A</text>
-    <text x="62" y="130" text-anchor="middle" font-size="13" font-weight="bold" fill="#f8fafc">33</text>
-
-    <rect x="115" y="90" width="75" height="50" rx="4" fill="#1e293b" stroke="#0284c7"/>
-    <text x="152" y="112" text-anchor="middle" font-size="11" fill="#38bdf8">Counter B</text>
-    <text x="152" y="130" text-anchor="middle" font-size="13" font-weight="bold" fill="#38bdf8">53</text>
-
-    <rect x="205" y="90" width="75" height="50" rx="4" fill="#1e293b" stroke="#475569"/>
-    <text x="242" y="112" text-anchor="middle" font-size="11" fill="#94a3b8">Counter C</text>
-    <text x="242" y="130" text-anchor="middle" font-size="13" font-weight="bold" fill="#f8fafc">6</text>
-
-    <rect x="295" y="90" width="75" height="50" rx="4" fill="#1e293b" stroke="#475569"/>
-    <text x="332" y="112" text-anchor="middle" font-size="11" fill="#94a3b8">Counter D</text>
-    <text x="332" y="130" text-anchor="middle" font-size="13" font-weight="bold" fill="#f8fafc">28</text>
+  <!-- Box 3: Warning signals (Light Red) -->
+  <g transform="translate(620, 50)">
+    <rect x="0" y="0" width="340" height="60" rx="8" fill="#fee2e2" stroke="#ef4444" stroke-width="1.5" filter="url(#cardShadow)"/>
+    <text x="170" y="25" text-anchor="middle" font-size="14" font-weight="bold" fill="#0f172a">Warning signals</text>
+    <text x="170" y="46" text-anchor="middle" font-size="13.5" fill="#334155">WARN LED + SIREN for residents</text>
   </g>
 
-  <!-- Connectors in HW -->
-  <line x1="190" y1="230" x2="230" y2="230" stroke="#38bdf8" stroke-width="2" marker-end="url(#arrow)"/>
-  <line x1="340" y1="310" x2="340" y2="335" stroke="#38bdf8" stroke-width="2" marker-end="url(#arrow)"/>
-
-  <!-- SOFTWARE SUBSYSTEM (RIGHT) -->
-  <rect x="520" y="100" width="440" height="420" rx="12" fill="#1e293b" stroke="#059669" stroke-width="2" filter="url(#shadow)"/>
-  <rect x="520" y="100" width="440" height="40" rx="12" fill="url(#swGrad)"/>
-  <text x="535" y="126" font-size="16" font-weight="bold" fill="#ffffff">2. SOFTWARE SUBSYSTEM (Historical Analysis)</text>
-  <text x="940" y="126" text-anchor="end" font-size="12" fill="#a7f3d0">x86-64 NASM</text>
-
-  <!-- Input Data -->
-  <g transform="translate(540, 160)">
-    <rect x="0" y="0" width="180" height="150" rx="8" fill="#0f172a" stroke="#334155"/>
-    <text x="90" y="24" text-anchor="middle" font-size="12" font-weight="bold" fill="#34d399">CSV Telemetry Ingestion</text>
-    <line x1="10" y1="32" x2="170" y2="32" stroke="#334155"/>
-    <text x="15" y="52" font-size="11" fill="#cbd5e1">data/elephant_readings.csv</text>
-    <text x="15" y="75" font-size="10.5" fill="#94a3b8">Schema (6 columns):</text>
-    <text x="15" y="95" font-size="10" fill="#e2e8f0">• id, corridor (0..3)</text>
-    <text x="15" y="113" font-size="10" fill="#e2e8f0">• hour (0..23), speed_kmh</text>
-    <text x="15" y="131" font-size="10" fill="#e2e8f0">• distance_m, direction</text>
+  <!-- Box 4: Crossing counters (Light Green) -->
+  <g transform="translate(620, 122)">
+    <rect x="0" y="0" width="340" height="55" rx="8" fill="#dcfce7" stroke="#22c55e" stroke-width="1.5" filter="url(#cardShadow)"/>
+    <text x="170" y="33" text-anchor="middle" font-size="14" fill="#1e293b">Crossing counters (per corridor)</text>
   </g>
 
-  <!-- Assembly Processing Engine -->
-  <g transform="translate(745, 160)">
-    <rect x="0" y="0" width="195" height="150" rx="8" fill="#0f172a" stroke="#334155"/>
-    <text x="97" y="24" text-anchor="middle" font-size="12" font-weight="bold" fill="#34d399">asm/elephant_report.asm</text>
-    <line x1="10" y1="32" x2="185" y2="32" stroke="#334155"/>
-    <text x="15" y="52" font-size="10.5" fill="#cbd5e1">• Linux raw syscalls</text>
-    <text x="15" y="72" font-size="10.5" fill="#cbd5e1">• argmax (Peak corridor)</text>
-    <text x="15" y="92" font-size="10.5" fill="#cbd5e1">• Kinematics (avg &amp; max)</text>
-    <text x="15" y="112" font-size="10.5" fill="#cbd5e1">• Peak period binning</text>
-    <text x="15" y="132" font-size="10.5" fill="#cbd5e1">• Risk percentage check</text>
+  <!-- Box 5: Status display (Light Green) -->
+  <g transform="translate(620, 189)">
+    <rect x="0" y="0" width="340" height="55" rx="8" fill="#dcfce7" stroke="#22c55e" stroke-width="1.5" filter="url(#cardShadow)"/>
+    <text x="170" y="33" text-anchor="middle" font-size="14" fill="#1e293b">Status display (location status)</text>
   </g>
 
-  <!-- Report Output -->
-  <g transform="translate(540, 335)">
-    <rect x="0" y="0" width="400" height="160" rx="8" fill="#0f172a" stroke="#334155"/>
-    <text x="200" y="24" text-anchor="middle" font-size="12" font-weight="bold" fill="#34d399">Output Conflict Report (out/conflict_report.txt)</text>
-    <line x1="10" y1="32" x2="390" y2="32" stroke="#334155"/>
-    <text x="15" y="52" font-size="11" fill="#e2e8f0">Readings Analyzed: 120  |  Most Used: Corridor B (53 crossings)</text>
-    <text x="15" y="74" font-size="11" fill="#e2e8f0">Speed: Avg = 5.9 km/h, Max = 20 km/h</text>
-    <text x="15" y="96" font-size="11" fill="#e2e8f0">Peak Window: 22:00-22:59  |  Peak Period: Evening (18-24h)</text>
-    <text x="15" y="118" font-size="11" fill="#e2e8f0">Danger Incursions: 21 (17%) [20 at night]</text>
-    <text x="15" y="142" font-size="12" font-weight="bold" fill="#f59e0b">Risk Level: MEDIUM -> Sound night siren, restrict movement</text>
+  <!-- Divider Section -->
+  <text x="500" y="278" text-anchor="middle" font-size="13.5" font-style="italic" fill="#64748b">HARDWARE (Logisim, live)</text>
+  <line x1="40" y1="292" x2="960" y2="292" stroke="#cbd5e1" stroke-width="1.5" stroke-dasharray="6,6"/>
+  <text x="500" y="312" text-anchor="middle" font-size="13.5" font-style="italic" fill="#64748b">SOFTWARE (x86-64 Assembly, historical analysis)</text>
+
+  <!-- ==================== SOFTWARE SUBSYSTEM ==================== -->
+  <!-- Box 6: Historical CSV (Light Purple) -->
+  <g transform="translate(40, 345)">
+    <rect x="0" y="0" width="210" height="95" rx="8" fill="#f3e8ff" stroke="#a855f7" stroke-width="1.5" filter="url(#cardShadow)"/>
+    <text x="105" y="35" text-anchor="middle" font-size="15" font-weight="bold" fill="#0f172a">Historical CSV</text>
+    <text x="105" y="68" text-anchor="middle" font-size="13.5" fill="#334155">data/elephant_readings.csv</text>
   </g>
 
-  <!-- Connectors in SW -->
-  <line x1="720" y1="230" x2="745" y2="230" stroke="#34d399" stroke-width="2" marker-end="url(#arrowGreen)"/>
-  <line x1="840" y1="310" x2="840" y2="335" stroke="#34d399" stroke-width="2" marker-end="url(#arrowGreen)"/>
+  <!-- Arrow 6 -> 7 -->
+  <line x1="250" y1="392" x2="325" y2="392" stroke="#334155" stroke-width="2" marker-end="url(#arrow)"/>
 
-  <!-- SHARED CONFIGURATION & MODEL VERIFICATION (BOTTOM) -->
-  <rect x="250" y="540" width="500" height="85" rx="10" fill="#1e293b" stroke="#d97706" stroke-width="2" filter="url(#shadow)"/>
-  <rect x="250" y="540" width="500" height="26" rx="10" fill="url(#sharedGrad)"/>
-  <text x="500" y="558" text-anchor="middle" font-size="13" font-weight="bold" fill="#ffffff">SHARED THRESHOLD RULES &amp; INDEPENDENT PYTHON VALIDATION</text>
-  
-  <text x="270" y="585" font-size="11.5" fill="#fde68a">• Shared Header: <tspan fill="#ffffff" font-weight="bold">asm/thresholds.inc</tspan> (DANGER_DIST_M = 500 m, NIGHT_START_HR = 18)</text>
-  <text x="270" y="608" font-size="11.5" fill="#fde68a">• Verification Model: <tspan fill="#ffffff" font-weight="bold">tools/reference.py</tspan> (Automated parity verification via `make check`)</text>
+  <!-- Box 7: elephant_report.asm (Light Purple) -->
+  <g transform="translate(330, 345)">
+    <rect x="0" y="0" width="300" height="95" rx="8" fill="#f3e8ff" stroke="#a855f7" stroke-width="1.5" filter="url(#cardShadow)"/>
+    <text x="150" y="30" text-anchor="middle" font-size="15" font-weight="bold" fill="#0f172a">elephant_report.asm</text>
+    <text x="150" y="58" text-anchor="middle" font-size="13.5" fill="#334155">parse - count - argmax - average</text>
+    <text x="150" y="80" text-anchor="middle" font-size="13.5" fill="#334155">risk level</text>
+  </g>
 
-  <!-- Cross-link arrows from Shared Box -->
-  <path d="M 350 540 L 350 520" stroke="#fbbf24" stroke-width="2" stroke-dasharray="4,4" marker-end="url(#arrowAmber)"/>
-  <path d="M 650 540 L 650 520" stroke="#fbbf24" stroke-width="2" stroke-dasharray="4,4" marker-end="url(#arrowAmber)"/>
+  <!-- Arrow 7 -> 8 -->
+  <line x1="630" y1="392" x2="695" y2="392" stroke="#334155" stroke-width="2" marker-end="url(#arrow)"/>
+
+  <!-- Box 8: Conflict report (Light Purple) -->
+  <g transform="translate(700, 345)">
+    <rect x="0" y="0" width="260" height="95" rx="8" fill="#f3e8ff" stroke="#a855f7" stroke-width="1.5" filter="url(#cardShadow)"/>
+    <text x="130" y="30" text-anchor="middle" font-size="15" font-weight="bold" fill="#0f172a">Conflict report</text>
+    <text x="130" y="58" text-anchor="middle" font-size="13" fill="#334155">corridor, speed, peak hours,</text>
+    <text x="130" y="80" text-anchor="middle" font-size="13" fill="#334155">danger entries, risk level</text>
+  </g>
+
+  <!-- Footer Note -->
+  <text x="500" y="485" text-anchor="middle" font-size="13.5" fill="#475569">Shared threshold: DANGER_DIST_M = 500 m (asm/thresholds.inc = PROX code 11)</text>
 </svg>
