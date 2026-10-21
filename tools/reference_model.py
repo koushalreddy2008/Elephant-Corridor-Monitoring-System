@@ -1,108 +1,142 @@
 #!/usr/bin/env python3
 """
-Elephant Corridor Monitoring System - Reference Model
-Provides an independent verification model for Logisim digital circuit and x86-64 assembly report.
+Elephant Corridor Monitoring System - Python Reference Analytical Engine
+Mirrors the exact x86-64 assembly report logic in asm/elephant_report.asm
+to guarantee 100% hardware/software test parity.
 """
 
 import sys
 import os
 
-PROXIMITY_DANGER_THRESHOLD = 4
-DIR_TOWARD_SETTLEMENT = 0
-SPEED_CHARGE_THRESHOLD = 10
+NUM_CORRIDORS = 4
+DANGER_DIST_M = 500
+NIGHT_START_HR = 18
+NIGHT_END_HR = 6
+HIGH_RISK_PCT = 30
+MED_RISK_PCT = 15
 
-def analyze_movement_file(csv_path):
-    corridor_counts = {1: 0, 2: 0, 3: 0, 4: 0}
-    corridor_crossings = {1: 0, 2: 0, 3: 0, 4: 0}
-    speeds = []
-    danger_events = 0
-    total_records = 0
-    
-    # Activity bins: Night (22:00-06:00), Morning (06:00-12:00), Afternoon (12:00-17:00), Evening (17:00-22:00)
-    activity_bins = {
-        "Night (22:00 - 06:00)": 0,
-        "Morning (06:00 - 12:00)": 0,
-        "Afternoon (12:00 - 17:00)": 0,
-        "Evening (17:00 - 22:00)": 0
-    }
-
+def analyze_readings(csv_path="data/elephant_readings.csv"):
     if not os.path.exists(csv_path):
-        print(f"Error: File {csv_path} does not exist.")
+        print("error: cannot open input file")
         sys.exit(1)
 
-    with open(csv_path, 'r') as f:
-        for line in f:
-            line = line.strip()
-            if not line or line.startswith('#'):
-                continue
-            parts = line.split(',')
-            if len(parts) < 7:
-                continue
+    with open(csv_path, 'r', encoding='utf-8') as f:
+        lines = f.readlines()
 
-            time_str, corr_id_str, prox_str, dir_str, speed_str, tod_str, cross_str = parts[:7]
-            
-            corr_id = int(corr_id_str)
-            prox = int(prox_str)
-            direction = int(dir_str)
-            speed = int(speed_str)
-            tod = int(tod_str)
-            cross = int(cross_str)
+    if not lines:
+        print("error: cannot open input file")
+        sys.exit(1)
 
-            total_records += 1
-            speeds.append(speed)
-            corridor_counts[corr_id] = corridor_counts.get(corr_id, 0) + 1
-            if cross == 1:
-                corridor_crossings[corr_id] = corridor_crossings.get(corr_id, 0) + 1
+    # Skip header
+    data_lines = lines[1:]
 
-            # Time of day binning
-            hour = int(time_str.split(':')[0])
-            if hour >= 22 or hour < 6:
-                activity_bins["Night (22:00 - 06:00)"] += 1
-            elif 6 <= hour < 12:
-                activity_bins["Morning (06:00 - 12:00)"] += 1
-            elif 12 <= hour < 17:
-                activity_bins["Afternoon (12:00 - 17:00)"] += 1
-            else:
-                activity_bins["Evening (17:00 - 22:00)"] += 1
+    corr_cnt = [0] * NUM_CORRIDORS
+    corr_dz = [0] * NUM_CORRIDORS
+    hour_cnt = [0] * 24
+    period_cnt = [0] * 4  # 0: Night, 1: Morning, 2: Afternoon, 3: Evening
 
-            # Conflict condition: animal close to settlement and moving towards it
-            if prox <= PROXIMITY_DANGER_THRESHOLD and direction == DIR_TOWARD_SETTLEMENT:
-                danger_events += 1
+    total = 0
+    sum_speed = 0
+    max_speed = 0
+    dz_total = 0
+    dz_night = 0
 
-    # Analysis results
-    most_used_corridor = max(corridor_counts, key=corridor_counts.get) if total_records else 0
-    max_speed = max(speeds) if speeds else 0
-    avg_speed = sum(speeds) / len(speeds) if speeds else 0.0
-    peak_period = max(activity_bins, key=activity_bins.get) if total_records else "N/A"
+    for line in data_lines:
+        line = line.strip()
+        if not line or line.startswith('#'):
+            continue
+        parts = [p.strip() for p in line.split(',') if p.strip()]
+        if len(parts) < 6:
+            continue
+        try:
+            r_id = int(parts[0])
+            corridor = int(parts[1])
+            hour = int(parts[2])
+            speed = int(parts[3])
+            distance = int(parts[4])
+            direction = int(parts[5])
+        except ValueError:
+            continue
 
-    report = []
-    report.append("===============================================================")
-    report.append("       ELEPHANT CORRIDOR MONITORING & CONFLICT REPORT          ")
-    report.append("===============================================================")
-    report.append(f"Total Movement Records Analyzed : {total_records}")
-    report.append("---------------------------------------------------------------")
-    report.append("1. CORRIDOR UTILIZATION:")
-    for cid in range(1, 5):
-        report.append(f"   Corridor #{cid} : {corridor_counts.get(cid, 0)} detections | {corridor_crossings.get(cid, 0)} crossings recorded")
-    report.append(f"   >> Most Frequently Used Corridor: Corridor #{most_used_corridor}")
-    report.append("---------------------------------------------------------------")
-    report.append("2. SPEED METRICS:")
-    report.append(f"   >> Maximum Recorded Speed       : {max_speed} km/h")
-    report.append(f"   >> Average Movement Speed       : {avg_speed:.2f} km/h")
-    report.append("---------------------------------------------------------------")
-    report.append("3. TEMPORAL ACTIVITY ANALYSIS:")
-    for period, count in activity_bins.items():
-        report.append(f"   {period:<25} : {count} detections")
-    report.append(f"   >> Highest Animal Activity Period: {peak_period}")
-    report.append("---------------------------------------------------------------")
-    report.append("4. HUMAN-WILDLIFE CONFLICT ASSESSMENT:")
-    report.append(f"   Danger Zone Incursions Detected  : {danger_events}")
-    verdict = "HIGH ALERT: Active conflict mitigation needed" if danger_events > 0 else "NORMAL: No immediate village intrusion detected"
-    report.append(f"   Overall Risk Status              : {verdict}")
-    report.append("===============================================================")
+        # Validation (matches asm logic)
+        if corridor >= NUM_CORRIDORS or hour >= 24:
+            continue
+
+        total += 1
+        sum_speed += speed
+        if speed > max_speed:
+            max_speed = speed
+
+        corr_cnt[corridor] += 1
+        hour_cnt[hour] += 1
+        period = hour // 6
+        period_cnt[period] += 1
+
+        if distance <= DANGER_DIST_M:
+            dz_total += 1
+            corr_dz[corridor] += 1
+            if hour >= NIGHT_START_HR or hour < NIGHT_END_HR:
+                dz_night += 1
+
+    if total == 0:
+        print("error: cannot open input file")
+        sys.exit(1)
+
+    # argmax for corridor (lowest index wins ties, matching asm)
+    best_corr_val = max(corr_cnt)
+    best_corr_idx = corr_cnt.index(best_corr_val)
+
+    # Average speed with 1 decimal (fixed-point integer division matching asm)
+    avg_speed_int = sum_speed // total
+    avg_speed_frac = ((sum_speed % total) * 10) // total
+
+    # argmax for peak hour
+    best_hour_val = max(hour_cnt)
+    best_hour_idx = hour_cnt.index(best_hour_val)
+
+    # argmax for peak period
+    best_period_val = max(period_cnt)
+    best_period_idx = period_cnt.index(best_period_val)
+    period_labels = [
+        "Night      00:00-05:59",
+        "Morning    06:00-11:59",
+        "Afternoon  12:00-17:59",
+        "Evening    18:00-23:59"
+    ]
+
+    # Danger-zone percentage
+    pct = (dz_total * 100) // total
+
+    # Build exact report matching asm/elephant_report.asm
+    out = []
+    out.append("==============================================================")
+    out.append("   ELEPHANT CORRIDOR MONITORING - HUMAN-WILDLIFE CONFLICT REPORT")
+    out.append("==============================================================")
+    out.append(f"Readings analysed          : {total}")
+    out.append("Corridor crossings (readings per corridor):")
+    for i in range(NUM_CORRIDORS):
+        cor_letter = chr(ord('A') + i)
+        out.append(f"  Corridor {cor_letter} : {corr_cnt[i]}   (danger-zone entries: {corr_dz[i]})")
     
-    return "\n".join(report)
+    top_letter = chr(ord('A') + best_corr_idx)
+    out.append(f"Most frequently used corridor : Corridor {top_letter}  ({best_corr_val} crossings)")
+    out.append(f"Average movement speed       : {avg_speed_int}.{avg_speed_frac} km/h")
+    out.append(f"Maximum movement speed       : {max_speed} km/h")
+    out.append(f"Peak activity hour           : {best_hour_idx:02d}:00 - {best_hour_idx:02d}:59  ({best_hour_val} readings)")
+    out.append(f"Peak activity period         : {period_labels[best_period_idx]}")
+    out.append(f"Danger-zone entries         : {dz_total}  ({pct} % of all readings)")
+    out.append(f"  of which at night (18-06h) : {dz_night}\n")
+    
+    if pct >= HIGH_RISK_PCT:
+        out.append("Conflict risk level          : HIGH   -> EMERGENCY: alert residents, deploy forest-guard patrol")
+    elif pct >= MED_RISK_PCT:
+        out.append("Conflict risk level          : MEDIUM -> WARNING: sound siren at night, restrict movement near corridor")
+    else:
+        out.append("Conflict risk level          : LOW    -> NORMAL: routine monitoring only")
+    out.append("==============================================================")
+
+    return "\n".join(out)
 
 if __name__ == "__main__":
-    dataset = sys.argv[1] if len(sys.argv) > 1 else "data/movement_data.csv"
-    print(analyze_movement_file(dataset))
+    csv_file = sys.argv[1] if len(sys.argv) > 1 else "data/elephant_readings.csv"
+    print(analyze_readings(csv_file))

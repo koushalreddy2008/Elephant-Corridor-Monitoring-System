@@ -25,8 +25,8 @@ An integrated digital monitoring and early-warning cyber-physical system designe
 | **Logisim Test Vectors** | `circuit/elephant_corridor_vectors.txt` | Automated test vectors covering normal & conflict edge cases |
 | **x86-64 Assembly Program** | `asm/elephant_report.asm` | Low-level data analysis & conflict reporting routine |
 | **Shared Thresholds** | `asm/thresholds.inc` | Unified thresholds shared by hardware logic & software |
-| **Recorded Movement Data** | `data/movement_data.csv` | Historical telemetry records (proximity, speed, direction, TOD) |
-| **Low-Activity Baseline Data**| `data/movement_data_quiet.csv` | Control dataset with minimal corridor movement |
+| **Recorded Movement Data** | `data/elephant_readings.csv` | Historical telemetry records (corridor, hour, speed, distance) |
+| **Low-Activity Baseline Data**| `data/elephant_readings_quiet.csv` | Control dataset with minimal corridor movement |
 | **Generated Conflict Report** | `out/conflict_report.txt` | Human-wildlife conflict assessment report |
 | **System Architecture Guide** | `docs/ARCHITECTURE.md` | Deep dive into hardware logic, truth tables & register maps |
 | **Written Project Report** | `docs/PROJECT_REPORT.md` | Academic submission report template |

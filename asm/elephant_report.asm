@@ -1,214 +1,436 @@
-; ==============================================================================
-; Elephant Corridor Monitoring System - Historical Analytics Engine
-; ==============================================================================
-; Architecture: x86-64 Linux/POSIX (NASM syntax)
-; Fulfills Requirements:
-;   1. Ingest historical elephant movement data
-;   2. Determine the most frequently used corridor
-;   3. Calculate average and maximum movement speed
-;   4. Identify time-of-day periods with highest animal activity
-;   5. Generate and format human-wildlife conflict report
-; ==============================================================================
+; ============================================================================
+; elephant_report.asm  -  Elephant Corridor Monitoring System (software half)
+; x86-64 Linux, NASM.  No libc: only raw syscalls.
+;
+; Reads a CSV of historical elephant sightings:
+;     id,corridor,hour,speed_kmh,distance_m,direction
+; and prints a human-wildlife conflict report:
+;     * crossings per corridor + most frequently used corridor
+;     * average and maximum movement speed
+;     * hour / period with the highest animal activity
+;     * danger-zone entries (distance <= DANGER_DIST_M) and risk level
+;
+; Usage:  ./build/elephant_report [csv_file]    (default data/elephant_readings.csv)
+; ============================================================================
+%include "thresholds.inc"
 
-%include "asm/thresholds.inc"
+SYS_READ   equ 0
+SYS_WRITE  equ 1
+SYS_OPEN   equ 2
+SYS_CLOSE  equ 3
+SYS_EXIT   equ 60
+
+%macro STR 2+                       ; STR label, "text", 10
+%1:      db %2
+%1_len   equ $ - %1
+%endmacro
+
+%macro PRINT 1                      ; print a STR constant
+    mov  rsi, %1
+    mov  rdx, %1_len
+    call print_str
+%endmacro
 
 section .data
-    banner_top:     db "===============================================================", 10
-                    db "       ELEPHANT CORRIDOR MONITORING & CONFLICT REPORT          ", 10
-                    db "===============================================================", 10, 0
-    banner_top_len  equ $ - banner_top
+default_path: db "data/elephant_readings.csv", 0
 
-    sep_line:       db "---------------------------------------------------------------", 10, 0
-    sep_line_len    equ $ - sep_line
-
-    sec1_hdr:       db "1. CORRIDOR UTILIZATION:", 10, 0
-    sec1_hdr_len    equ $ - sec1_hdr
-
-    sec2_hdr:       db "2. SPEED METRICS:", 10, 0
-    sec2_hdr_len    equ $ - sec2_hdr
-
-    sec3_hdr:       db "3. TEMPORAL ACTIVITY ANALYSIS:", 10, 0
-    sec3_hdr_len    equ $ - sec3_hdr
-
-    sec4_hdr:       db "4. HUMAN-WILDLIFE CONFLICT ASSESSMENT:", 10, 0
-    sec4_hdr_len    equ $ - sec4_hdr
-
-    str_total_rec:  db "Total Movement Records Analyzed : ", 0
-    str_max_spd:    db "   >> Maximum Recorded Speed       : ", 0
-    str_avg_spd:    db "   >> Average Movement Speed       : ", 0
-    str_most_corr:  db "   >> Most Frequently Used Corridor: Corridor #", 0
-    str_peak_tod:   db "   >> Highest Animal Activity Period: ", 0
-    str_danger_inc: db "   Danger Zone Incursions Detected  : ", 0
-    str_status_hdr: db "   Overall Risk Status              : ", 0
-    str_high_alert: db "HIGH ALERT: Active conflict mitigation needed", 10, 0
-    str_norm_alert: db "NORMAL: No immediate village intrusion detected", 10, 0
-    str_kmh:        db " km/h", 10, 0
-    newline:        db 10, 0
-
-    ; Period labels
-    lbl_night:      db "Night (22:00 - 06:00)", 0
-    lbl_morning:    db "Morning (06:00 - 12:00)", 0
-    lbl_afternoon:  db "Afternoon (12:00 - 17:00)", 0
-    lbl_evening:    db "Evening (17:00 - 22:00)", 0
-
-    ; Hardcoded test dataset (simulating parsed historical records)
-    ; Record schema: [hour(1 byte), corridor_id(1 byte), proximity(1 byte), direction(1 byte), speed(1 byte), crossing(1 byte)]
-    record_table:
-        db 1,  2, 3,  DIR_TOWARD_SETTLEMENT,    9,  1
-        db 1,  2, 2,  DIR_TOWARD_SETTLEMENT,    12, 0
-        db 2,  1, 7,  DIR_CROSSING_CORRIDOR,    5,  1
-        db 3,  2, 4,  DIR_TOWARD_SETTLEMENT,    8,  0
-        db 4,  3, 11, DIR_AWAY_FROM_SETTLEMENT, 4,  1
-        db 5,  2, 3,  DIR_TOWARD_SETTLEMENT,    11, 0
-        db 6,  4, 14, DIR_PARALLEL,             3,  1
-        db 8,  1, 12, DIR_AWAY_FROM_SETTLEMENT, 4,  1
-        db 10, 3, 10, DIR_CROSSING_CORRIDOR,    5,  1
-        db 12, 1, 13, DIR_PARALLEL,             3,  0
-        db 14, 4, 9,  DIR_AWAY_FROM_SETTLEMENT, 6,  1
-        db 16, 2, 8,  DIR_CROSSING_CORRIDOR,    7,  1
-        db 18, 2, 5,  DIR_TOWARD_SETTLEMENT,    8,  0
-        db 19, 1, 6,  DIR_CROSSING_CORRIDOR,    6,  1
-        db 21, 2, 2,  DIR_TOWARD_SETTLEMENT,    13, 1
-        db 22, 2, 4,  DIR_TOWARD_SETTLEMENT,    10, 0
-        db 23, 3, 8,  DIR_CROSSING_CORRIDOR,    6,  1
-    RECORD_COUNT equ 17
-    RECORD_SIZE  equ 6
+STR s_line,    "==============================================================", 10
+STR s_title,   "   ELEPHANT CORRIDOR MONITORING - HUMAN-WILDLIFE CONFLICT REPORT", 10
+STR s_total,   "Readings analysed          : "
+STR s_cross,   "Corridor crossings (readings per corridor):", 10
+STR s_corr,    "  Corridor "
+STR s_colon,   " : "
+STR s_dz,      "   (danger-zone entries: "
+STR s_rpar,    ")", 10
+STR s_topcor,  "Most frequently used corridor : Corridor "
+STR s_with,    "  ("
+STR s_cr,      " crossings)", 10
+STR s_avg,     "Average movement speed       : "
+STR s_max,     "Maximum movement speed       : "
+STR s_kmh,     " km/h", 10
+STR s_peakh,   "Peak activity hour           : "
+STR s_00,      ":00 - "
+STR s_59,      ":59  ("
+STR s_rd,      " readings)", 10
+STR s_peakp,   "Peak activity period         : "
+STR s_night,   "Night      00:00-05:59", 10
+STR s_morn,    "Morning    06:00-11:59", 10
+STR s_aft,     "Afternoon  12:00-17:59", 10
+STR s_eve,     "Evening    18:00-23:59", 10
+STR s_dzone,   "Danger-zone entries         : "
+STR s_pct1,    "  ("
+STR s_pct2,    " % of all readings)", 10
+STR s_nightdz, "  of which at night (18-06h) : "
+STR s_risk,    "Conflict risk level          : "
+STR s_high,    "HIGH   -> EMERGENCY: alert residents, deploy forest-guard patrol", 10
+STR s_med,     "MEDIUM -> WARNING: sound siren at night, restrict movement near corridor", 10
+STR s_low,     "LOW    -> NORMAL: routine monitoring only", 10
+STR s_err,     "error: cannot open input file", 10
+STR s_nl,      10
+STR dot, "."
 
 section .bss
-    corridor_counts:    resq 5          ; 1-indexed (indices 1..4)
-    speed_sum:          resq 1
-    max_speed:          resq 1
-    avg_speed_int:      resq 1
-    avg_speed_frac:     resq 1
-    danger_count:       resq 1
-    tod_counts:         resq 4          ; 0: Night, 1: Morning, 2: Afternoon, 3: Evening
-    most_used_corridor: resq 1
-    num_buffer:         resb 32
+buf:         resb MAX_FILE_BYTES
+numbuf:      resb 24
+chbuf:       resb 4
+corr_cnt:    resq NUM_CORRIDORS
+corr_dz:     resq NUM_CORRIDORS
+hour_cnt:    resq 24
+period_cnt:  resq 4
+total:       resq 1
+sum_speed:   resq 1
+max_speed:   resq 1
+dz_total:    resq 1
+dz_night:    resq 1
+best_val:    resq 1
+best_idx:    resq 1
+tmp_a:       resq 1
 
 section .text
-    global _start
+global _start
 
+; ---------------------------------------------------------------- _start ----
 _start:
-    ; Zero out memory buffers
-    mov rcx, 5
-.zero_corr:
-    mov qword [corridor_counts + rcx*8 - 8], 0
-    loop .zero_corr
+    mov  rax, [rsp]                 ; argc
+    lea  rdi, [default_path]
+    cmp  rax, 2
+    jb   .open
+    mov  rdi, [rsp + 16]            ; argv[1]
+.open:
+    mov  rax, SYS_OPEN
+    xor  esi, esi                   ; O_RDONLY
+    xor  edx, edx
+    syscall
+    test rax, rax
+    js   .err
+    mov  rbx, rax                   ; fd
+    mov  rax, SYS_READ
+    mov  rdi, rbx
+    lea  rsi, [buf]
+    mov  rdx, MAX_FILE_BYTES
+    syscall
+    mov  r12, rax                   ; bytes read
+    mov  rax, SYS_CLOSE
+    mov  rdi, rbx
+    syscall
+    test r12, r12
+    jle  .err
+    lea  rsi, [buf]
+    add  r12, rsi                   ; r12 = end of data
 
-    mov qword [speed_sum], 0
-    mov qword [max_speed], 0
-    mov qword [danger_count], 0
-    mov qword [tod_counts + 0], 0
-    mov qword [tod_counts + 8], 0
-    mov qword [tod_counts + 16], 0
-    mov qword [tod_counts + 24], 0
+    ; skip header line
+.hdr:
+    cmp  rsi, r12
+    jae  .analysed
+    cmp  byte [rsi], 10
+    je   .hdr_done
+    inc  rsi
+    jmp  .hdr
+.hdr_done:
+    inc  rsi
 
-    ; Ingestion & Processing Loop
-    xor rbx, rbx                    ; record index = 0
-.process_loop:
-    cmp rbx, RECORD_COUNT
-    jge .process_done
+; ------------------------------------------------------- parse every row ----
+.row:
+    call next_num                   ; id (ignored)
+    test ecx, ecx
+    jnz  .analysed
+    call next_num                   ; corridor
+    mov  r13, rax
+    call next_num                   ; hour
+    mov  r14, rax
+    call next_num                   ; speed
+    mov  r15, rax
+    call next_num                   ; distance
+    mov  rbx, rax
+    call next_num                   ; direction (parsed, not needed for stats)
+    test ecx, ecx
+    jnz  .analysed
 
-    ; Calculate offset: record_table + rbx * RECORD_SIZE
-    imul rsi, rbx, RECORD_SIZE
-    lea rsi, [record_table + rsi]
+    cmp  r13, NUM_CORRIDORS         ; validate row
+    jae  .row
+    cmp  r14, 24
+    jae  .row
 
-    movzx r8,  byte [rsi + 0]       ; hour
-    movzx r9,  byte [rsi + 1]       ; corridor_id (1..4)
-    movzx r10, byte [rsi + 2]       ; proximity
-    movzx r11, byte [rsi + 3]       ; direction
-    movzx r12, byte [rsi + 4]       ; speed
-    movzx r13, byte [rsi + 5]       ; crossing flag
+    inc  qword [total]
+    add  [sum_speed], r15
+    cmp  r15, [max_speed]
+    jbe  .nomax
+    mov  [max_speed], r15
+.nomax:
+    inc  qword [corr_cnt + r13*8]
+    inc  qword [hour_cnt + r14*8]
+    mov  rax, r14                   ; period = hour / 6
+    xor  edx, edx
+    mov  ecx, 6
+    div  rcx
+    inc  qword [period_cnt + rax*8]
 
-    ; 1. Tally corridor count
-    inc qword [corridor_counts + r9*8]
+    cmp  rbx, DANGER_DIST_M         ; inside danger zone?
+    ja   .row
+    inc  qword [dz_total]
+    inc  qword [corr_dz + r13*8]
+    cmp  r14, NIGHT_START_HR        ; night = hour>=18 or hour<6
+    jae  .is_night
+    cmp  r14, NIGHT_END_HR
+    jae  .row
+.is_night:
+    inc  qword [dz_night]
+    jmp  .row
 
-    ; 2. Kinematics (sum speed & check max)
-    add qword [speed_sum], r12
-    mov rax, [max_speed]
-    cmp r12, rax
-    jle .check_tod
-    mov [max_speed], r12
+; ---------------------------------------------------------- print report ----
+.analysed:
+    cmp  qword [total], 0
+    je   .err
+    PRINT s_line
+    PRINT s_title
+    PRINT s_line
+    PRINT s_total
+    mov  rax, [total]
+    call print_num
+    PRINT s_nl
 
-.check_tod:
-    ; 3. Temporal Activity Binning
-    ; Night: hour >= 22 or hour < 6
-    cmp r8, 22
-    jge .bin_night
-    cmp r8, 6
-    jl .bin_night
-    ; Morning: 6 <= hour < 12
-    cmp r8, 12
-    jl .bin_morning
-    ; Afternoon: 12 <= hour < 17
-    cmp r8, 17
-    jl .bin_afternoon
-    ; Evening: 17 <= hour < 22
-    inc qword [tod_counts + 24]
-    jmp .check_conflict
+    PRINT s_cross
+    xor  r14, r14
+.cl:
+    PRINT s_corr
+    lea  rax, [r14 + 'A']
+    call print_char
+    PRINT s_colon
+    mov  rax, [corr_cnt + r14*8]
+    call print_num
+    PRINT s_dz
+    mov  rax, [corr_dz + r14*8]
+    call print_num
+    PRINT s_rpar
+    inc  r14
+    cmp  r14, NUM_CORRIDORS
+    jb   .cl
 
-.bin_night:
-    inc qword [tod_counts + 0]
-    jmp .check_conflict
-.bin_morning:
-    inc qword [tod_counts + 8]
-    jmp .check_conflict
-.bin_afternoon:
-    inc qword [tod_counts + 16]
+    ; most used corridor
+    lea  rdi, [corr_cnt]
+    mov  ecx, NUM_CORRIDORS
+    call argmax
+    PRINT s_topcor
+    mov  rax, [best_idx]
+    add  rax, 'A'
+    call print_char
+    PRINT s_with
+    mov  rax, [best_val]
+    call print_num
+    PRINT s_cr
 
-.check_conflict:
-    ; 4. Human-wildlife conflict criteria: prox <= 4 AND direction == 0
-    cmp r10, PROXIMITY_DANGER_THRESHOLD
-    jg .next_record
-    cmp r11, DIR_TOWARD_SETTLEMENT
-    jne .next_record
-    inc qword [danger_count]
+    ; average speed with one decimal
+    PRINT s_avg
+    mov  rax, [sum_speed]
+    xor  edx, edx
+    mov  rcx, [total]
+    div  rcx                        ; rax = int part, rdx = remainder
+    mov  [tmp_a], rdx
+    call print_num
+    PRINT dot
+    mov  rax, [tmp_a]
+    imul rax, rax, 10
+    xor  edx, edx
+    mov  rcx, [total]
+    div  rcx
+    call print_num
+    PRINT s_kmh
 
-.next_record:
-    inc rbx
-    jmp .process_loop
+    PRINT s_max
+    mov  rax, [max_speed]
+    call print_num
+    PRINT s_kmh
 
-.process_done:
-    ; Compute Most Frequently Used Corridor (argmax corridor_counts[1..4])
-    mov rdi, 1                      ; best_id = 1
-    mov rsi, [corridor_counts + 1*8]; max_count = corridor_counts[1]
-    mov rcx, 2
-.find_max_corr:
-    cmp rcx, 4
-    jg .found_max_corr
-    mov rax, [corridor_counts + rcx*8]
-    cmp rax, rsi
-    jle .skip_corr_update
-    mov rsi, rax
-    mov rdi, rcx
-.skip_corr_update:
-    inc rcx
-    jmp .find_max_corr
-.found_max_corr:
-    mov [most_used_corridor], rdi
+    ; peak hour
+    lea  rdi, [hour_cnt]
+    mov  ecx, 24
+    call argmax
+    PRINT s_peakh
+    mov  rax, [best_idx]
+    call print_num2
+    PRINT s_00
+    mov  rax, [best_idx]
+    call print_num2
+    PRINT s_59
+    mov  rax, [best_val]
+    call print_num
+    PRINT s_rd
 
-    ; Compute Average Speed = speed_sum / RECORD_COUNT
-    mov rax, [speed_sum]
-    xor rdx, rdx
-    mov rcx, RECORD_COUNT
-    div rcx
-    mov [avg_speed_int], rax
-    ; Compute 2-digit fraction: (remainder * 100) / count
-    imul rax, rdx, 100
-    xor rdx, rdx
-    div rcx
-    mov [avg_speed_frac], rax
+    ; peak period
+    lea  rdi, [period_cnt]
+    mov  ecx, 4
+    call argmax
+    PRINT s_peakp
+    mov  rax, [best_idx]
+    cmp  rax, 0
+    je   .p0
+    cmp  rax, 1
+    je   .p1
+    cmp  rax, 2
+    je   .p2
+    PRINT s_eve
+    jmp  .pdone
+.p0: PRINT s_night
+    jmp  .pdone
+.p1: PRINT s_morn
+    jmp  .pdone
+.p2: PRINT s_aft
+.pdone:
 
-    ; -------------------------------------------------------------
-    ; Print Formatted Report to stdout
-    ; -------------------------------------------------------------
-    mov rdi, 1                      ; fd = stdout
-    lea rsi, [banner_top]
-    mov rdx, banner_top_len
-    mov rax, 1                      ; sys_write
+    ; danger-zone summary
+    PRINT s_dzone
+    mov  rax, [dz_total]
+    call print_num
+    PRINT s_pct1
+    mov  rax, [dz_total]
+    imul rax, rax, 100
+    xor  edx, edx
+    mov  rcx, [total]
+    div  rcx
+    mov  r15, rax                   ; r15 = percentage (kept for risk level)
+    call print_num
+    PRINT s_pct2
+    PRINT s_nightdz
+    mov  rax, [dz_night]
+    call print_num
+    PRINT s_nl
+    PRINT s_nl
+
+    ; risk level
+    PRINT s_risk
+    cmp  r15, HIGH_RISK_PCT
+    jae  .high
+    cmp  r15, MED_RISK_PCT
+    jae  .med
+    PRINT s_low
+    jmp  .end
+.med:
+    PRINT s_med
+    jmp  .end
+.high:
+    PRINT s_high
+.end:
+    PRINT s_line
+    xor  edi, edi
+    mov  eax, SYS_EXIT
+    syscall
+.err:
+    PRINT s_err
+    mov  edi, 1
+    mov  eax, SYS_EXIT
     syscall
 
-    ; Exit gracefully
-    mov rax, 60                     ; sys_exit
-    xor rdi, rdi
+; ----------------------------------------------------------- subroutines ----
+; next_num: rsi = cursor, r12 = end.  Returns rax = next unsigned number,
+;           ecx = 0 ok / 1 end-of-data.  Clobbers rax, rcx, rdx.
+next_num:
+.skip:
+    cmp  rsi, r12
+    jae  .eof
+    movzx edx, byte [rsi]
+    sub  edx, '0'
+    cmp  edx, 9
+    jbe  .digits
+    inc  rsi
+    jmp  .skip
+.digits:
+    xor  eax, eax
+.dl:
+    cmp  rsi, r12
+    jae  .done
+    movzx edx, byte [rsi]
+    sub  edx, '0'
+    cmp  edx, 9
+    ja   .done
+    imul rax, rax, 10
+    add  rax, rdx
+    inc  rsi
+    jmp  .dl
+.done:
+    xor  ecx, ecx
+    ret
+.eof:
+    mov  ecx, 1
+    ret
+
+; argmax: rdi = array of qwords, ecx = length.  Sets best_val / best_idx
+; (lowest index wins ties).
+argmax:
+    xor  eax, eax
+    mov  qword [best_val], 0
+    mov  qword [best_idx], 0
+.l:
+    mov  rdx, [rdi + rax*8]
+    cmp  rdx, [best_val]
+    jbe  .n
+    mov  [best_val], rdx
+    mov  [best_idx], rax
+.n:
+    inc  eax
+    cmp  eax, ecx
+    jb   .l
+    ret
+
+; print_str: rsi = text, rdx = length
+print_str:
+    push rax
+    push rdi
+    push rcx
+    push r11
+    mov  eax, SYS_WRITE
+    mov  edi, 1
     syscall
+    pop  r11
+    pop  rcx
+    pop  rdi
+    pop  rax
+    ret
+
+; print_char: al = character
+print_char:
+    push rsi
+    push rdx
+    mov  [chbuf], al
+    lea  rsi, [chbuf]
+    mov  edx, 1
+    call print_str
+    pop  rdx
+    pop  rsi
+    ret
+
+; print_num: rax = unsigned value, printed in decimal
+print_num:
+    push rbx
+    push rcx
+    push rdx
+    push rsi
+    lea  rsi, [numbuf + 23]
+    mov  rbx, 10
+    xor  ecx, ecx
+.d:
+    xor  edx, edx
+    div  rbx
+    add  dl, '0'
+    dec  rsi
+    mov  [rsi], dl
+    inc  rcx
+    test rax, rax
+    jnz  .d
+    mov  rdx, rcx
+    call print_str
+    pop  rsi
+    pop  rdx
+    pop  rcx
+    pop  rbx
+    ret
+
+; print_num2: rax = value 0..99 printed with 2 digits (zero padded)
+print_num2:
+    cmp  rax, 10
+    jae  .two
+    push rax
+    mov  al, '0'
+    call print_char
+    pop  rax
+.two:
+    jmp  print_num

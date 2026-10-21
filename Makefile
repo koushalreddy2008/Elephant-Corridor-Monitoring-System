@@ -2,39 +2,38 @@
 # Makefile for Elephant Corridor Monitoring System
 # ==============================================================================
 
-NASM      ?= nasm
-LD        ?= ld
-PYTHON    ?= python
-NASMFLAGS := -f elf64 -g -F dwarf
-LDFLAGS   := -m elf_x86_64
+NASM        ?= nasm
+LD          ?= ld
+PYTHON      ?= python
+NASMFLAGS   := -f elf64 -g -F dwarf -Iasm/
+LDFLAGS     := -m elf_x86_64
 
-SRC_ASM   := asm/elephant_report.asm
-INC_ASM   := asm/thresholds.inc
-BIN_DIR   := bin
-OUT_DIR   := out
-TARGET    := $(BIN_DIR)/elephant_report
-DATA_CSV  := data/movement_data.csv
+SRC_ASM     := asm/elephant_report.asm
+INC_ASM     := asm/thresholds.inc
+BUILD_DIR   := build
+TARGET      := $(BUILD_DIR)/elephant_report
+DEFAULT_CSV := data/elephant_readings.csv
 
-.PHONY: all run check clean test-vectors data report
+.PHONY: all run check clean test-vectors report
 
 all: $(TARGET)
 
 $(TARGET): $(SRC_ASM) $(INC_ASM)
-	@mkdir -p $(BIN_DIR)
-	@mkdir -p $(OUT_DIR)
-	$(NASM) $(NASMFLAGS) $(SRC_ASM) -o $(BIN_DIR)/elephant_report.o
-	$(LD) $(LDFLAGS) $(BIN_DIR)/elephant_report.o -o $(TARGET)
+	@mkdir -p $(BUILD_DIR)
+	@mkdir -p out
+	$(NASM) $(NASMFLAGS) $(SRC_ASM) -o $(BUILD_DIR)/elephant_report.o
+	$(LD) $(LDFLAGS) $(BUILD_DIR)/elephant_report.o -o $(TARGET)
 	@echo "[BUILD SUCCESS] Binary built at $(TARGET)"
 
 run: $(TARGET)
-	@./$(TARGET)
+	@./$(TARGET) $(DEFAULT_CSV)
 
 # Run Python reference analytics model
 report:
-	@mkdir -p $(OUT_DIR)
-	$(PYTHON) tools/reference_model.py $(DATA_CSV) | tee $(OUT_DIR)/conflict_report.txt
+	@mkdir -p out
+	$(PYTHON) tools/reference_model.py $(DEFAULT_CSV) | tee out/conflict_report.txt
 
-# Generate circuit test vectors
+# Generate Logisim circuit test vectors
 test-vectors:
 	$(PYTHON) tools/gen_vectors.py
 
@@ -45,5 +44,5 @@ check: test-vectors report
 	@echo "=========================================================="
 
 clean:
-	rm -rf $(BIN_DIR) $(OUT_DIR)
+	rm -rf $(BUILD_DIR) bin out
 	@echo "[CLEAN] Build artifacts removed."
