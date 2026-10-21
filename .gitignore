@@ -1,0 +1,20 @@
+# Build artifacts
+out/
+bin/
+*.o
+*.obj
+*.exe
+elephant_report
+
+# Logisim temporary & backup files
+*.circ.bak
+*~
+*.swp
+
+# Python cache
+__pycache__/
+*.pyc
+
+# OS generated files
+.DS_Store
+Thumbs.db
