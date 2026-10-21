@@ -20,18 +20,15 @@ An integrated digital monitoring and early-warning cyber-physical system designe
 
 | Deliverable | Path | Description |
 |---|---|---|
-| **Logisim Digital Circuit** | `circuit/elephant_corridor_monitor.circ` | Combinational & sequential logic circuit |
-| **Circuit Pinout & Specs** | `circuit/README.md` | Input bit-widths, output pin mappings & logic truth tables |
-| **Logisim Test Vectors** | `circuit/elephant_corridor_vectors.txt` | Automated test vectors covering normal & conflict edge cases |
+| **Logisim Digital Circuit** | `circuit/` | Hardware digital logic schematic & counters (team member module) |
 | **x86-64 Assembly Program** | `asm/elephant_report.asm` | Low-level data analysis & conflict reporting routine |
 | **Shared Thresholds** | `asm/thresholds.inc` | Unified thresholds shared by hardware logic & software |
-| **Recorded Movement Data** | `data/elephant_readings.csv` | Historical telemetry records (corridor, hour, speed, distance) |
-| **Low-Activity Baseline Data**| `data/elephant_readings_quiet.csv` | Control dataset with minimal corridor movement |
+| **Recorded Movement Data** | `data/elephant_readings.csv` | Primary historical telemetry (120 readings, high activity) |
+| **Low-Activity Baseline Data**| `data/elephant_quiet.csv` | Control baseline dataset (8 readings, low activity) |
 | **Generated Conflict Report** | `out/conflict_report.txt` | Human-wildlife conflict assessment report |
 | **System Architecture Guide** | `docs/ARCHITECTURE.md` | Deep dive into hardware logic, truth tables & register maps |
-| **Written Project Report** | `docs/PROJECT_REPORT.md` | Academic submission report template |
-| **Reference Python Engine** | `tools/reference_model.py` | Mathematical verification model & report generator |
-| **Vector Generator** | `tools/gen_vectors.py` | Automated generator for Logisim test vectors |
+| **Written Project Report** | `docs/PROJECT_REPORT.md` | Coursework project report & case study discussion |
+| **Reference Python Engine** | `tools/reference.py` | Mathematical verification model & automated diff checker |
 
 ---
 

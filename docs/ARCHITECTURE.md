@@ -68,7 +68,7 @@ The architecture is divided into two cooperative subsystems:
 ## 3. Software Subsystem (x86-64 Assembly Routine)
 
 ### Operational Flow
-1. **Data Ingestion**: Parses record rows from `data/movement_data.csv`.
+1. **Data Ingestion**: Parses record rows from `data/elephant_readings.csv`.
 2. **Frequency Histogram**: Accumulates crossings per corridor index into memory arrays `corridor_counts` ($C_1 \dots C_4$).
 3. **Kinematic Computation**:
    - Compares current speed against `max_speed` register.
