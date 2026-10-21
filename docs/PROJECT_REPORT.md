@@ -4,12 +4,12 @@
 
 | # | Name          | Roll No.     |
 | - | ------------- | ------------ |
-| 1 | *(your name)* | *(roll no.)* |
-| 2 | *(teammate)*  | *(roll no.)* |
-| 3 | *(teammate)*  | *(roll no.)* |
-| 4 | *(teammate)*  | *(roll no.)* |
-| 5 | *(teammate)*  | *(roll no.)* |
-| 6 | *(teammate)*  | *(roll no.)* |
+| 1 | Koushal Reddy.V | B25CM1062 |
+| 2 | R Trupti | B25CM1037 |
+| 3 | Sreehari EH | B25CM1052 |
+| 4 | K.Amuktha Malyadha | B25CM1029 |
+| 5 | Amratanshu Gupta | B25CM1006 |
+| 6 | Chhichhia Het Rajesh | B25CM1011 |
 
 ## 1. Introduction
 

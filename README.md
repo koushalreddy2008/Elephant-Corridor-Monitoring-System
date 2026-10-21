@@ -6,12 +6,12 @@
 ## Group Members
 | # | Name | Roll No. |
 |:---:|:---|:---:|
-| 1 | Your Name | B25XXXXXX |
-| 2 | Team Member 2 | B25XXXXXX |
-| 3 | Team Member 3 | B25XXXXXX |
-| 4 | Team Member 4 | B25XXXXXX |
-| 5 | Team Member 5 | B25XXXXXX |
-| 6 | Team Member 6 | B25XXXXXX |
+| 1 | Koushal Reddy.V | B25CM1062 |
+| 2 | R Trupti | B25CM1037 |
+| 3 | Sreehari EH | B25CM1052 |
+| 4 | K.Amuktha Malyadha | B25CM1029 |
+| 5 | Amratanshu Gupta | B25CM1006 |
+| 6 | Chhichhia Het Rajesh | B25CM1011 |
 
 ---
 
