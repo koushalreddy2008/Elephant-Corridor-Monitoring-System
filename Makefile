@@ -18,8 +18,14 @@ check: all
 	@for f in $(DATA); do \
 	  $(B)/elephant_report $$f > $(B)/asm.out; \
 	  python3 tools/reference.py $$f > $(B)/ref.out; \
-	  if diff -q $(B)/asm.out $(B)/ref.out >/dev/null; then echo "PASS  $$f"; \
-	  else echo "FAIL  $$f"; diff $(B)/asm.out $(B)/ref.out; exit 1; fi; \
+	  if diff -q $(B)/asm.out $(B)/ref.out >/dev/null; then \
+	    echo "PASS  $$f"; \
+	    rm -f $(B)/asm.out $(B)/ref.out; \
+	  else \
+	    echo "FAIL  $$f"; \
+	    diff $(B)/asm.out $(B)/ref.out; \
+	    exit 1; \
+	  fi; \
 	done
 
 clean:
