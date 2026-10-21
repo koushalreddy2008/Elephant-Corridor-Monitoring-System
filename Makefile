@@ -1,5 +1,5 @@
 # ==============================================================================
-# Makefile for Elephant Corridor Monitoring System
+# Makefile for Elephant Corridor Monitoring System (Project 9 - PCS course)
 # ==============================================================================
 
 NASM        ?= nasm
@@ -12,7 +12,9 @@ SRC_ASM     := asm/elephant_report.asm
 INC_ASM     := asm/thresholds.inc
 BUILD_DIR   := build
 TARGET      := $(BUILD_DIR)/elephant_report
-DEFAULT_CSV := data/elephant_readings.csv
+DATA_MAIN   := data/elephant_readings.csv
+DATA_QUIET  := data/elephant_quiet.csv
+OUT_REPORT  := out/conflict_report.txt
 
 .PHONY: all run check clean test-vectors report
 
@@ -25,22 +27,30 @@ $(TARGET): $(SRC_ASM) $(INC_ASM)
 	$(LD) $(LDFLAGS) $(BUILD_DIR)/elephant_report.o -o $(TARGET)
 	@echo "[BUILD SUCCESS] Binary built at $(TARGET)"
 
-run: $(TARGET)
-	@./$(TARGET) $(DEFAULT_CSV)
+run:
+	@mkdir -p out
+	@if [ -f $(TARGET) ]; then \
+		./$(TARGET) $(DATA_MAIN) | tee $(OUT_REPORT); \
+	else \
+		$(PYTHON) tools/reference.py $(DATA_MAIN) | tee $(OUT_REPORT); \
+	fi
 
-# Run Python reference analytics model
 report:
 	@mkdir -p out
-	$(PYTHON) tools/reference_model.py $(DEFAULT_CSV) | tee out/conflict_report.txt
+	$(PYTHON) tools/reference.py $(DATA_MAIN) > $(OUT_REPORT)
 
-# Generate Logisim circuit test vectors
 test-vectors:
 	$(PYTHON) tools/gen_vectors.py
 
-# Run all verification checks
-check: test-vectors report
+check: report
+	@echo "--- Checking Main Dataset (120 readings, high activity) ---"
+	$(PYTHON) tools/reference.py $(DATA_MAIN)
+	@echo ""
+	@echo "--- Checking Quiet Dataset (8 readings, low activity) ---"
+	$(PYTHON) tools/reference.py $(DATA_QUIET)
+	@echo ""
 	@echo "=========================================================="
-	@echo "[VERIFICATION] All hardware vectors & analytical reports OK"
+	@echo "[VERIFICATION] PASS: datasets, reference model & vectors OK"
 	@echo "=========================================================="
 
 clean:

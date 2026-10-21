@@ -45,8 +45,8 @@ SPEED_CHARGE_THRESHOLD      equ 10      ; >= 10 km/h: High speed / stampede / ch
 
 ; --- Conflict Risk Assessment Levels (Percentage of danger zone incursions)
 HIGH_RISK_PCT               equ 30      ; >= 30% danger-zone readings -> HIGH RISK (EMERGENCY)
-MED_RISK_PCT                equ 15      ; >= 15% danger-zone readings -> MEDIUM RISK (WARNING)
-                                        ; < 15% -> LOW RISK (NORMAL)
+MED_RISK_PCT                equ 10      ; >= 10% danger-zone readings -> MEDIUM RISK (WARNING)
+                                        ; < 10% -> LOW RISK (NORMAL)
 
 ; --- Hardware Warning Alert Levels
 ALERT_NORMAL                equ 0       ; Green LED: All clear

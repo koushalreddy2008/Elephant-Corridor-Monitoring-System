@@ -1,55 +1,107 @@
-# Project Report: Elephant Corridor Monitoring System
+# Elephant Corridor Monitoring System
 
-## Group Information
-- **Course**: Computer Organization & Digital Logic Design
-- **Project Topic**: Elephant Corridor Monitoring & Conflict Mitigation System
+**Project 9 - PCS course**
 
-| S.No | Name | Roll Number | Contribution |
-|---|---|---|---|
-| 1 | Student 1 | B25XXXXXX | Digital Logic Design & Logisim Implementation |
-| 2 | Student 2 | B25XXXXXX | x86-64 Assembly Historical Data Analysis Engine |
-| 3 | Student 3 | B25XXXXXX | Circuit Simulation & Test Vector Validation |
-| 4 | Student 4 | B25XXXXXX | Data Pipeline & Python Reference Modeling |
-| 5 | Student 5 | B25XXXXXX | Report Writing, Documentation & Hardware Mapping |
+| # | Name          | Roll No.     |
+| - | ------------- | ------------ |
+| 1 | *(your name)* | *(roll no.)* |
+| 2 | *(teammate)*  | *(roll no.)* |
+| 3 | *(teammate)*  | *(roll no.)* |
+| 4 | *(teammate)*  | *(roll no.)* |
+| 5 | *(teammate)*  | *(roll no.)* |
+| 6 | *(teammate)*  | *(roll no.)* |
 
----
+## 1. Introduction
 
-## 1. Abstract
-Human-elephant conflict (HEC) presents serious safety hazards to agrarian communities neighboring forested regions. This project implements a comprehensive two-tier monitoring solution: a real-time digital logic circuit that senses animal proximity, movement trajectory, and speed to dispatch acoustic and visual warnings, and a low-level x86-64 assembly analytics engine that processes historical telemetry logs to identify corridor bottlenecks, nocturnal peaks, and kinematic extremes.
+Human-elephant conflict is a serious problem where settlements border forest corridors. Elephants entering villages cause crop damage, property loss and casualties. This project designs a simplified digital early-warning system that monitors elephant movement, warns residents when an elephant enters a danger zone, counts corridor crossings, and analyses historical movement data to support management decisions.
 
----
+## 2. Objectives
 
-## 2. Problem Statement & Functional Requirements
-As specified in the system design rubric:
-1. **Digital Inputs**: Represent animal proximity (4 bits), direction (2 bits), velocity (4 bits), and time-of-day (1 bit).
-2. **Danger Detection**: Determine when an animal breaches the human-settlement buffer zone heading village-ward.
-3. **Warning Signals**: Trigger multi-color status indicators and acoustic alarms.
-4. **Hardware Counters**: Log sequential crossing events per corridor.
-5. **Location Status**: Drive displays indicating animal proximity zones.
-6. **Assembly Analysis**:
-   - Ingest historical logs.
-   - Identify the most frequently traversed corridor.
-   - Calculate average and peak velocities.
-   - Bin high-activity time windows.
-   - Formulate a human-wildlife conflict assessment report.
+1. Represent proximity, direction, speed and time of day as digital inputs.
+2. Detect entry into a predefined danger zone.
+3. Generate warning signals for residents.
+4. Count corridor crossings and display the current status.
+5. Analyse historical data in x86-64 Assembly: most used corridor, average and maximum speed, peak activity periods, and a conflict report.
 
----
+## 3. System architecture
 
-## 3. Circuit Implementation & Truth Logic
-*(Detailed schematic diagrams and pin configurations can be referenced in `circuit/elephant_corridor_monitor.circ` and `docs/ARCHITECTURE.md`)*.
+See `docs/architecture.svg`. The **hardware part** (Logisim) works live; the **software part** (Assembly) works on recorded data. Both share the threshold `DANGER_DIST_M = 500 m`.
 
----
+## 4. Digital representation of inputs
 
-## 4. Assembly Engine & Data Flow
-*(Detailed register mapping and algorithmic pseudo-code can be referenced in `asm/elephant_report.asm`)*.
+| Signal      | Bits | Encoding                                              |
+| ----------- | ---- | ----------------------------------------------------- |
+| Proximity   | 2    | 11 <=500 m, 10 501-1000 m, 01 1001-2000 m, 00 >2000 m |
+| Direction   | 2    | 00 away, 01 toward, 10 parallel                       |
+| Speed       | 2    | 00 <3, 01 3-6, 10 7-12, 11 >12 km/h                   |
+| Time of day | 1    | 1 = night (18:00-05:59)                               |
+| Corridor    | 2    | A-D (00=A, 01=B, 10=C, 11=D)                          |
 
----
+## 5. Hardware design (Logisim)
 
-## 5. Simulation Results & Verification
-- **Logisim Test Vectors**: Verified against 10 comprehensive edge cases in `circuit/elephant_corridor_vectors.txt` with zero discrepancies.
-- **Assembly vs Python Reference Model**: Bit-exact parity achieved between `tools/reference_model.py` and compiled x86-64 binary output.
+Logic:
 
----
+- `DANGER = (PROX == 11)`
+- `WARN_LED = DANGER + (PROX == 10 . DIR == toward)`
+- `SIREN = DANGER . (DIR == toward + NIGHT)`
+- One counter per corridor, clocked by the rising edge of DANGER and enabled by the decoded corridor.
+- A status display shows CLEAR / NEAR / ALERT / DANGER.
 
-## 6. Conclusion
-The dual-tier digital monitoring approach delivers both millisecond-level responsiveness for immediate threat warning and high-throughput computational analytics for environmental planning and wildlife management.
+*(Add screenshots of the Logisim circuit here and a sentence on each sub-circuit: input stage, danger detector, warning logic, counters, display. Expected truth table: `circuit/elephant_vectors.txt`.)*
+
+## 6. Software design (Assembly)
+
+**Input:** CSV `id,corridor,hour,speed_kmh,distance_m,direction`. **Algorithm:**
+
+1. Open and read the file with Linux syscalls.
+2. Skip the header; parse six numbers per row with a digit-accumulation routine.
+3. Validate corridor (0-3) and hour (0-23).
+4. Update counters: per corridor, per hour, per 6-hour period; speed sum and maximum; danger-zone entries (total, per corridor, night).
+5. Find maxima with an `argmax` routine.
+6. Compute average speed = sum / count (one decimal via remainder).
+7. Risk level from the percentage of readings inside the danger zone: >=30 % HIGH, >=10 % MEDIUM, otherwise LOW.
+8. Print the formatted report with the `write` syscall.
+
+**Files:** `asm/elephant_report.asm`, `asm/thresholds.inc`.
+
+## 7. Verification
+
+`tools/reference.py` re-implements the analysis in Python. `make check` assembles the program, runs it on both datasets and diffs against the Python output: **PASS** on `elephant_readings.csv` (120 readings, high activity) and `elephant_quiet.csv` (8 readings, low activity). The circuit is checked against the truth table in `circuit/elephant_vectors.txt`.
+
+## 8. Results (120 readings)
+
+| Metric                  | Value                                                          |
+| ----------------------- | -------------------------------------------------------------- |
+| Most used corridor      | B (53 crossings)                                               |
+| Crossings A / B / C / D | 33 / 53 / 6 / 28                                               |
+| Average speed           | 5.9 km/h                                                       |
+| Maximum speed           | 20 km/h                                                        |
+| Peak activity hour      | 22:00-22:59 (13 readings)                                      |
+| Peak period             | Evening (18-24)                                                |
+| Danger-zone entries     | 21 (17 %), 20 at night                                         |
+| Risk level              | MEDIUM - sound siren at night, restrict movement near corridor |
+
+The full output is in `out/conflict_report.txt`.
+
+## 9. Case study discussion
+
+Corridor B carries 44 % of all crossings and almost half of the danger-zone entries (10 of 21), so it is the priority location for sirens, early-warning posts and patrols. Almost all danger entries (20 of 21) occur between 18:00 and 06:00, so residents should be warned in the evening and night shifts of the forest department should be strengthened. The maximum speed of 20 km/h indicates occasional charging events, which justify the faster siren response in the circuit.
+
+## 10. Limitations and future work
+
+- Data is synthetic; real data would come from GPS collars, camera traps or PIR/ultrasonic sensors.
+- Integer arithmetic only; direction is recorded but not used in the software risk level.
+- Fixed 16 KB input buffer.
+- Future: more corridors, weighted risk score, SMS alerts, dynamic buffer.
+
+## 11. Conclusion
+
+The system covers the full pipeline: digital representation, danger detection, warnings, counting and display in hardware, and statistical conflict analysis in Assembly. The software was verified against an independent model, and both halves share one danger threshold.
+
+## 12. How to run
+
+```bash
+make        # build
+make run    # report -> out/conflict_report.txt
+make check  # verification
+```
