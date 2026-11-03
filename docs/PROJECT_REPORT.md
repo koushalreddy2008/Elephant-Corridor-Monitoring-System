@@ -48,8 +48,28 @@ Logic:
 - `SIREN = DANGER . (DIR == toward + NIGHT)`
 - One counter per corridor, clocked by the rising edge of DANGER and enabled by the decoded corridor.
 - A status display shows CLEAR / NEAR / ALERT / DANGER.
+<img width="1384" height="934" alt="Screenshot from 2026-11-04 01-10-31" src="https://github.com/user-attachments/assets/c6c13ffe-eee4-4869-bdce-c1acea273a79" /> Subcircuit(corridor counters)
 
-*(Add screenshots of the Logisim circuit here and a sentence on each sub-circuit: input stage, danger detector, warning logic, counters, display. Expected truth table: `circuit/elephant_vectors.txt`.)*
+<img width="1018" height="872" alt="Screenshot from 2026-11-04 01-09-16" src="https://github.com/user-attachments/assets/184a6791-c4ea-4cd0-bc35-cffc7032168b" /> Main circuit
+
+### 1)Input Stage
+The input stage receives the elephant's proximity, direction, speed and time of day, along with the selected corridor, crossing pulse, clock and reset signals. These inputs are used by the different sections of the circuit to monitor elephant movement and corridor activity.
+
+### 2) Danger Detector
+The danger detector checks the elephant's proximity and direction. It identifies a danger condition when the elephant is within 4 units of the sensor and is moving toward the village.
+
+### 3) Warning Logic
+The warning logic uses the danger condition, proximity level and time of day to control the green, yellow and red LEDs. The buzzer is activated when the red warning is active.
+
+### 4)Counters
+The counter section uses the corridor selection and crossing pulse to update the count for the selected corridor. It contains four separate 8-bit counters, one for each corridor (C1, C2, C3 and C4). Only the selected corridor's counter increments when a crossing pulse is received and a rising clock edge occurs.
+
+### 5) Display
+The display logic converts the proximity value into a 2-bit zone code. It displays `00` for proximity values 0–2, `01` for 3–4, `10` for 5–8 and `11` for 9–15.
+
+(The speed classification logic divides the elephant's speed into normal (0–6), rapid (7–9) and high (10–15) categories.")
+
+*(Expected truth table: `circuit/elephant_vectors.txt`.)*
 
 ## 6. Software design (Assembly)
 
