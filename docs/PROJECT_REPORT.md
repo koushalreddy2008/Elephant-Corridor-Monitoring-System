@@ -25,9 +25,8 @@ Human-elephant conflict is a serious problem where settlements border forest cor
 
 ## 3. System architecture
 
-![Elephant Corridor Monitoring System - Architecture](architecture.png)
+<img width="1024" height="538" alt="architecture" src="https://github.com/user-attachments/assets/f0ef98b5-c2df-4b88-86e2-0af062136c75" /> System Architecture
 
-See `docs/architecture.svg` and `docs/architecture.png`. The **hardware part** (Logisim) works live; the **software part** (Assembly) works on recorded data. Both share the threshold `DANGER_DIST_M = 500 m`.
 
 ## 4. Digital representation of inputs
 
@@ -123,6 +122,7 @@ The system covers the full pipeline: digital representation, danger detection, w
 ## 12. How to run
 
 ```bash
+make clean
 make        # build
 make run    # report -> out/conflict_report.txt
 make check  # verification
