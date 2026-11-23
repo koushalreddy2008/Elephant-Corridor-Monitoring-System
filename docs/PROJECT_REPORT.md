@@ -47,7 +47,7 @@ Logic:
 - `SIREN = DANGER . (DIR == toward + NIGHT)`
 - One counter per corridor, clocked by the rising edge of DANGER and enabled by the decoded corridor.
 - A status display shows CLEAR / NEAR / ALERT / DANGER.
-<img width="1384" height="934" alt="Screenshot from 2026-11-04 01-10-31" src="https://github.com/user-attachments/assets/c6c13ffe-eee4-4869-bdce-c1acea273a79" /> Subcircuit(corridor counters)
+<img width="1018" height="872" alt="Screenshot from 2026-11-04 01-10-31" src="https://github.com/user-attachments/assets/c6c13ffe-eee4-4869-bdce-c1acea273a79" /> Subcircuit(corridor counters)
 
 <img width="1018" height="872" alt="Screenshot from 2026-11-04 01-09-16" src="https://github.com/user-attachments/assets/184a6791-c4ea-4cd0-bc35-cffc7032168b" /> Main circuit
 
@@ -127,3 +127,5 @@ make        # build
 make run    # report -> out/conflict_report.txt
 make check  # verification
 ```
+
+#### Github Link: https://github.com/koushalreddy2008/Elephant-Corridor-Monitoring-System.git
