@@ -25,16 +25,16 @@ Human-elephant conflict is a serious problem where settlements border forest cor
 
 ## 3. System architecture
 
-<img width="1024" height="538" alt="architecture" src="https://github.com/user-attachments/assets/f0ef98b5-c2df-4b88-86e2-0af062136c75" /> System Architecture
+<img width="1730" height="909" alt="Elephant Corridor Monitoring Architecture" src="https://github.com/user-attachments/assets/8e112038-dfd8-4792-a35f-593143e538b2" />System Architecture
 
 
 ## 4. Digital representation of inputs
 
 | Signal      | Bits | Encoding                                              |
 | ----------- | ---- | ----------------------------------------------------- |
-| Proximity   | 2    | 0000: <=250 m, 0010: 250-500m, 0101–1000 500-750m, 1001–1111  >750m |
+| Proximity   | 4    | 0000: <=250 m, 0010: 250-500m, 0101–1000 500-750m, 1001–1111  >750m |
 | Direction   | 2    | 00: away, 01: toward, 10: parallel, 11: crossing corridor                     |
-| Speed       | 2    | 0000-0110: 0-6 kmph, 0111-1001: 7-9kmph, 1010-1111: 10-15kmph                   |
+| Speed       | 4    | 0000-0110: 0-6 kmph, 0111-1001: 7-9kmph, 1010-1111: 10-15kmph                   |
 | Time of day | 1    | 1 = night (18:00-05:59)                               |
 | Corridor    | 2    | 1-4 (00 => 1, 01 => 2, 10 => 3, 11 => 4)                          |
 
@@ -42,7 +42,7 @@ Human-elephant conflict is a serious problem where settlements border forest cor
 
 Logic:
 
-- `DANGER = (PROX == 0000)`
+- `DANGER = DANGER = (PROX == 0000) + (PROX == 0010)`
 - `WARN_LED = DANGER + (PROX == 0010 . DIR == toward)`
 - `SIREN = DANGER . (DIR == toward + NIGHT)`
 - One counter per corridor, clocked by the rising edge of DANGER and enabled by the decoded corridor.
