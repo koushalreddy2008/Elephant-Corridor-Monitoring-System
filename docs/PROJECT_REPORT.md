@@ -25,8 +25,7 @@ Human-elephant conflict is a serious problem where settlements border forest cor
 
 ## 3. System architecture
 
-<img width="1730" height="909" alt="Elephant Corridor Monitoring Architecture" src="https://github.com/user-attachments/assets/8e112038-dfd8-4792-a35f-593143e538b2" />System Architecture
-
+<img width="800" height="650" alt="Elephant Corridor Monitoring Architecture (1)" src="https://github.com/user-attachments/assets/eb0ce228-e3ff-475f-bdc3-bea1e3d8fd03" /> System Architecture
 
 ## 4. Digital representation of inputs
 
@@ -47,9 +46,9 @@ Logic:
 - `SIREN = DANGER . (DIR == toward + NIGHT)`
 - One counter per corridor, clocked by the rising edge of DANGER and enabled by the decoded corridor.
 - A status display shows CLEAR / NEAR / ALERT / DANGER.
-<img width="1018" height="872" alt="Subcircuit" src="https://github.com/user-attachments/assets/802b9912-db92-4d65-a905-952318c9f808" /> Subcircuit(corridor counters)
+<img width="900" height="750" alt="Subcircuit" src="https://github.com/user-attachments/assets/802b9912-db92-4d65-a905-952318c9f808" /> Subcircuit(corridor counters)
 
-<img width="1018" height="872" alt="Main_circuit" src="https://github.com/user-attachments/assets/f7ebbb74-a03c-4ec2-803e-53d18878696a" />Main circuit
+<img width="900" height="750" alt="Main_circuit" src="https://github.com/user-attachments/assets/f7ebbb74-a03c-4ec2-803e-53d18878696a" />Main circuit
 
 ### 1)Input Stage
 The input stage receives the elephant's proximity, direction, speed and time of day, along with the selected corridor, crossing pulse, clock and reset signals. These inputs are used by the different sections of the circuit to monitor elephant movement and corridor activity.
