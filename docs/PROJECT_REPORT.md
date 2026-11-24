@@ -32,11 +32,11 @@ Human-elephant conflict is a serious problem where settlements border forest cor
 
 | Signal      | Bits | Encoding                                              |
 | ----------- | ---- | ----------------------------------------------------- |
-| Proximity   | 2    | 11 <=500 m, 10 501-1000 m, 01 1001-2000 m, 00 >2000 m |
-| Direction   | 2    | 00 away, 01 toward, 10 parallel                       |
-| Speed       | 2    | 00 <3, 01 3-6, 10 7-12, 11 >12 km/h                   |
+| Proximity   | 2    | 0000: <=250 m, 0010: 250-500m, 0101–1000 500-750m, 1001–1111  >750m |
+| Direction   | 2    | 00: away, 01: toward, 10: parallel, 11: crossing corridor                     |
+| Speed       | 2    | 0000-0110: 0-6 kmph, 0111-1001: 7-9kmph, 1010-1111: 10-15kmph                   |
 | Time of day | 1    | 1 = night (18:00-05:59)                               |
-| Corridor    | 2    | A-D (00=A, 01=B, 10=C, 11=D)                          |
+| Corridor    | 2    | 1-4 (00 => 1, 01 => 2, 10 => 3, 11 => 4)                          |
 
 ## 5. Hardware design (Logisim)
 
@@ -47,9 +47,9 @@ Logic:
 - `SIREN = DANGER . (DIR == toward + NIGHT)`
 - One counter per corridor, clocked by the rising edge of DANGER and enabled by the decoded corridor.
 - A status display shows CLEAR / NEAR / ALERT / DANGER.
-<img width="1018" height="872" alt="Screenshot from 2026-11-04 01-10-31" src="https://github.com/user-attachments/assets/c6c13ffe-eee4-4869-bdce-c1acea273a79" /> Subcircuit(corridor counters)
+<img width="1018" height="872" alt="Subcircuit" src="https://github.com/user-attachments/assets/802b9912-db92-4d65-a905-952318c9f808" /> Subcircuit(corridor counters)
 
-<img width="1018" height="872" alt="Screenshot from 2026-11-04 01-09-16" src="https://github.com/user-attachments/assets/184a6791-c4ea-4cd0-bc35-cffc7032168b" /> Main circuit
+<img width="1018" height="872" alt="Main_circuit" src="https://github.com/user-attachments/assets/f7ebbb74-a03c-4ec2-803e-53d18878696a" />Main circuit
 
 ### 1)Input Stage
 The input stage receives the elephant's proximity, direction, speed and time of day, along with the selected corridor, crossing pulse, clock and reset signals. These inputs are used by the different sections of the circuit to monitor elephant movement and corridor activity.
@@ -64,7 +64,7 @@ The warning logic uses the danger condition, proximity level and time of day to 
 The counter section uses the corridor selection and crossing pulse to update the count for the selected corridor. It contains four separate 8-bit counters, one for each corridor (C1, C2, C3 and C4). Only the selected corridor's counter increments when a crossing pulse is received and a rising clock edge occurs.
 
 ### 5) Display
-The display logic converts the proximity value into a 2-bit zone code. It displays `00` for proximity values 0–2, `01` for 3–4, `10` for 5–8 and `11` for 9–15.
+The display logic converts the proximity value into a 2-bit zone code. It displays `0000: <=250 m, 0010: 250-500m, 0101–1000 500-750m, 1001–1111  >750m`.
 
 (The speed classification logic divides the elephant's speed into normal (0–6), rapid (7–9) and high (10–15) categories.")
 
