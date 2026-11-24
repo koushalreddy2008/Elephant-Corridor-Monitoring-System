@@ -42,8 +42,8 @@ Human-elephant conflict is a serious problem where settlements border forest cor
 
 Logic:
 
-- `DANGER = (PROX == 11)`
-- `WARN_LED = DANGER + (PROX == 10 . DIR == toward)`
+- `DANGER = (PROX == 0000)`
+- `WARN_LED = DANGER + (PROX == 0010 . DIR == toward)`
 - `SIREN = DANGER . (DIR == toward + NIGHT)`
 - One counter per corridor, clocked by the rising edge of DANGER and enabled by the decoded corridor.
 - A status display shows CLEAR / NEAR / ALERT / DANGER.
